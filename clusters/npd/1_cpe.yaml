@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-cpe
+  namespace: dep-system
+  labels:
+    app.kubernetes.io/instance: de-cpe
+    app.kubernetes.io/name: cpe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: de-cpe
+      app.kubernetes.io/name: cpe
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: de-cpe
+        app.kubernetes.io/name: cpe
+    spec:
+      containers:
+        - name: cpe
+          image: cpe:local
+          ports:
+            - name: gunicorn
+              containerPort: 5000
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1024Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: de-cpe
+  namespace: dep-system
+  labels:
+    app.kubernetes.io/instance: de-cpe
+    app.kubernetes.io/name: cpe
+spec:
+  selector:
+    app.kubernetes.io/instance: de-cpe
+    app.kubernetes.io/name: cpe
+  type: NodePort
+  ports:
+    - name: http
+      nodePort: 30000
+      port: 5000
+      targetPort: gunicorn
